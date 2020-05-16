@@ -1,4 +1,4 @@
-//** จะไม่มีการ ใช้ ESP32.reset เด็ดขาดทุกอย่างต้องทำงานแยกกัน 
+//** จะไม่มีการ ใช้ ESP32.reset เด็ดขาดทุกอย่างต้องทำงานแยกกัน
 //** no  delay
 #include <Arduino.h>
 #include <elapsedMillis.h>
@@ -12,14 +12,13 @@
 #include <BlynkSimpleEsp32.h>
 #include <EEPROM.h>
 
-
 //*Teampreture
 uint8_t readStatus = 0;
 AHT10 myAHT10(AHT10_ADDRESS_0X38);
 
 //*TIMER
 elapsedMillis timeElapsed;
-unsigned int interval = 60 * 1000;//secend *1000(is millisec)
+unsigned int interval = 60 * 1000; //secend *1000(is millisec)
 
 //*GPIO_SETTING
 #define Relay1 16
@@ -47,8 +46,8 @@ float Count = 0;
 
 //*EEPROM
 //ต้องใช้ code รี eeprom
-#define EEPROM_SIZE 3 //1.start กี่ครั้ง     
-                      //2.reconnect กี่ครั้ง 
+#define EEPROM_SIZE 3 //1.start กี่ครั้ง     \
+                      //2.reconnect กี่ครั้ง \
                       //
 int startCount = 0;
 int reconnectCount = 0;
@@ -72,21 +71,21 @@ void connnect2Sensor()
   //*AHT10
   if (myAHT10.begin() != true)
   {
-    Serial.println(F("-----AHT10 FAIL-----")); //(F()) save string to flash & keeps dynamic memory free
+    Serial.println(F("[SENSOR]:-----AHT10 FAIL-----")); //(F()) save string to flash & keeps dynamic memory free
   }
   else
   {
-    Serial.println(F("-----AHT10 OK-----"));
+    Serial.println(F("[SENSOR]:-----AHT10 OK-----"));
   }
 
   //*OLED
   if (display.begin(SSD1306_SWITCHCAPVCC, 0x3c) != false)
   {
-    Serial.println(F("-----SSD1306 FAIL-----"));
+    Serial.println(F("[SENSOR]:-----SSD1306 FAIL-----"));
   }
   else
   {
-    Serial.println(F("-----OLED OK-----"));
+    Serial.println(F("[SENSOR]:-----OLED OK-----"));
   }
   display.display();
   display.clearDisplay();
@@ -95,16 +94,12 @@ void connnect2Sensor()
   Blynk.begin(auth, ssid, pass, serv, 8080);
   if (Blynk.connected() == true)
   {
-    Serial.println(F("-----BLYNK OK-----"));
+    Serial.println(F("[APP]:-----BLYNK OK-----"));
     startCountEEPROM();
   }
   else
-    Serial.println(F("-----BLYNK FAIL TO START-----"));
+    Serial.println(F("[APP]:-----BLYNK FAIL TO START-----"));
 }
-
-
-
-
 
 void Reconnect()
 {
@@ -179,30 +174,16 @@ void data2comport()
   Serial.println(F(" +-2%"));
 }
 
-boolean relayStatus1 = false;
-boolean relayStatus2 = false;
+String relayStatus1 = "OFF";
+String relayStatus2 = "OFF";
 void blynkRead()
 {
   Blynk.virtualWrite(V0, Temperature);
   Blynk.virtualWrite(V1, Humidity);
   Blynk.virtualWrite(V20, startCount);
   Blynk.virtualWrite(V21, reconnectCount);
-  if (relayStatus1 == true)
-  {
-    Blynk.virtualWrite(V3, "ON");
-  }
-  else
-  {
-    Blynk.virtualWrite(V3, "OFF");
-  }
-  if (relayStatus2 == true)
-  {
-    Blynk.virtualWrite(V4, "ON");
-  }
-  else
-  {
-    Blynk.virtualWrite(V4, "OFF");
-  }
+  Blynk.virtualWrite(V3, relayStatus1);
+  Blynk.virtualWrite(V4, relayStatus2);
 }
 
 //สำคัญสัสๆเลย
@@ -210,22 +191,19 @@ void RelayControl()
 {
   if (Temperature > 38.5)
   {
-    relayStatus1 = false;
-    relayStatus2 = false;
+    relayStatus1 = "OFF";
+    relayStatus2 = "OFF";
     digitalWrite(Relay1, HIGH);
     digitalWrite(Relay2, HIGH);
-    //digitalWrite(LedBulidIn,HIGH);
   }
   if (Temperature < 36.5)
   {
-    relayStatus1 = true;
-    relayStatus2 = true;
+    relayStatus1 = "ON";
+    relayStatus2 = "ON";
     digitalWrite(Relay1, LOW);
     digitalWrite(Relay2, LOW);
-    //digitalWrite(LedBulidIn,LOW);
   }
 }
-
 
 void setup()
 {
@@ -244,8 +222,6 @@ void setup()
 
   Serial.begin(115200);
   //Wire.setClock(400000); //experimental I2C speed! 400KHz, default 100KHz
-  
-  
 
   //*AHT10 and OLED connection
   connnect2Sensor();
@@ -260,7 +236,7 @@ void setup()
     Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
   }
 }
-
+String KeyboardIO;
 void loop()
 {
   //TIME
@@ -274,9 +250,15 @@ void loop()
 
   OLED();
   //data2comport();
-  
+
   Blynk.run();
   blynkRead();
   Reconnect(); //เพราะมี blynk อยู่ ใช้  reconnect sensor ด้วย
 
+  while(Serial.available())
+  {
+      KeyboardIO = Serial.readString();
+      Serial.println(KeyboardIO);
+  }
+  
 }
