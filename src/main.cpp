@@ -11,57 +11,7 @@
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <EEPROM.h>
-#include <iSYNC.h>
 
-
-
-WiFiClient client;
-iSYNC iSYNC(client);
-
-
-String iSYNC_USERNAME = "NamelessKingMeow"; //ใส่ USERNAME ของผู้ใช้งาน
-String iSYNC_KEY = "5eba39baed95c1464946b9f2"; //ใส่ ISYNC KEY ที่ได้รับมา
-String iSYNC_AUTH = "5eba3949ed95c1464946b87f"; //ใส่ ISYNC AUTH (Project Auth)
-
-void callback(char* topic, byte* payload, unsigned int length) {
-  String msg = "";
-  Serial.print("[iSYNC]-> ");
-  for (int i = 0; i < length; i++) {
-    msg += (char)payload[i];
-    Serial.print((char)payload[i]);
-  }
-  Serial.println();
-  if (msg.startsWith("LINE:"))msg = msg.substring(5);
-
-  /* command control */
-  /*
-  if (msg.equals("ปิดไฟเบอร์ 1")) {
-    digitalWrite(2, LOW);
-    iSYNC.mqPub(iSYNC_KEY, "ปิดไฟเบอร์ 1 LED on board แล้วค่ะเจ้านาย");  //Publish
-  } else if (msg.equals("เปิดไฟเบอร์ 1")) {
-    digitalWrite(2, HIGH);
-    iSYNC.mqPub(iSYNC_KEY, "เปิดไฟเบอร์ 1 LED on board แล้วค่ะเจ้านาย");  //Publish
-  } else if (msg.equals("สวัสดี")) {
-    iSYNC.mqPub(iSYNC_KEY, "สวัสดีค่ะเจ้านาย");  //Publish
-  } else if (msg.equals("เปิดไฟเบอร์ 2")) {
-    digitalWrite(15, HIGH);
-    iSYNC.mqPub(iSYNC_KEY, "เปิดไฟเบอร์ 2 แล้วค่ะเจ้านาย");  //Publish
-  } else if (msg.equals("ปิดไฟเบอร์ 2")) {
-    digitalWrite(15, LOW);
-    iSYNC.mqPub(iSYNC_KEY, "ปิดไฟเบอร์ 2 แล้วค่ะเจ้านาย");  //Publish
-  }
-  */
-}
-
-void connectMQTT() {
-  while (!iSYNC.mqConnect()) {
-    Serial.println("Reconnect MQTT...");
-    delay(3000);
-  }
-  iSYNC.mqPub(iSYNC_KEY, "พร้อมรับคำสั่งแล้วค่ะเจ้านาย");  //Publish on Connect
-  // iSYNC.mqSubProject(); //subscribe all key in your project
-  iSYNC.mqSub(iSYNC_KEY); //subscribe key
-}
 
 //*Teampreture
 uint8_t readStatus = 0;
@@ -84,7 +34,7 @@ unsigned int interval = 60 * 1000;//secend *1000(is millisec)
 #define OLED_RESET 4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
 
-//*BLYNK + *iSYNC
+//*BLYNK
 char auth[] = "uQE9tc0pxF3kvNageuLAk9ifvoVbElpi";
 char ssid[] = "SSID";
 char pass[] = "";
@@ -309,13 +259,6 @@ void setup()
     Temperature = (float)myAHT10.readTemperature(AHT10_USE_READ_DATA);
     Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
   }
-
-  //*iSYNC
-  Serial.println(iSYNC.getVersion());
-  iSYNC.begin(ssid, pass);
-  iSYNC.mqInit(iSYNC_USERNAME, iSYNC_AUTH);
-  iSYNC.MQTT->setCallback(callback);
-  connectMQTT();
 }
 
 void loop()
@@ -336,7 +279,4 @@ void loop()
   blynkRead();
   Reconnect(); //เพราะมี blynk อยู่ ใช้  reconnect sensor ด้วย
 
-  //*iSYNC
-  if (!iSYNC.mqConnected())connectMQTT();
-  iSYNC.mqLoop();
 }
