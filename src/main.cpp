@@ -18,7 +18,9 @@ AHT10 myAHT10(AHT10_ADDRESS_0X38);
 
 //*TIMER
 elapsedMillis timeElapsed;
-unsigned int interval = 20* 1000; //secend *1000(is millisec)
+unsigned int interval = 10 * 1000; //secend *1000(is millisec)
+elapsedMillis timeElapsedBlynk;
+unsigned int intervalBlynk = 10 * 1000; //secend *1000(is millisec)
 
 //*GPIO_SETTING
 #define Relay1 16
@@ -124,7 +126,7 @@ void Reconnect()
       reconnectCountEEPROM();
     }
     else
-      Serial.println(F("-----BLYNK FAIL TO START-----"));
+      Serial.println(F("[APP]:-----BLYNK FAIL TO START-----"));
   }
 }
 
@@ -184,6 +186,29 @@ void blynkRead()
   Blynk.virtualWrite(V21, reconnectCount);
   Blynk.virtualWrite(V3, relayStatus1);
   Blynk.virtualWrite(V4, relayStatus2);
+}
+//blynk
+int notiSwitch = 0;
+BLYNK_WRITE(V30) // V30 is the number of Virtual Pin
+{
+  notiSwitch = param.asInt();
+}
+void BlynkNoti()
+{
+  if(Temperature > 35 && Temperature < 40)
+  {
+    notiSwitch = 0;
+  }
+  if (notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
+  {
+    intervalBlynk = 0;
+    Blynk.notify("อุณหภูมิตกโว้ยย");
+  }
+  if (notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
+  {
+    intervalBlynk = 0;
+    Blynk.notify("อุณหภูมิสูงไปแล้วโว้ยย");
+  }
 }
 
 //สำคัญสัสๆเลย
@@ -253,5 +278,7 @@ void loop()
 
   Blynk.run();
   blynkRead();
+  BlynkNoti();
   Reconnect(); //เพราะมี blynk อยู่ ใช้  reconnect sensor ด้วย
+  
 }
