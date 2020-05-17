@@ -11,6 +11,10 @@
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <EEPROM.h>
+#include <TridentTD_LineNotify.h>
+
+//*line token
+#define LINE_TOKEN "-"
 
 //*Teampreture
 uint8_t readStatus = 0;
@@ -235,6 +239,10 @@ void setup()
     Temperature = (float)myAHT10.readTemperature(AHT10_USE_READ_DATA);
     Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
   }
+
+  //*line
+  //set token
+  LINE.setToken(LINE_TOKEN);
 }
 String KeyboardIO;
 void loop()
@@ -243,6 +251,7 @@ void loop()
   if (timeElapsed > interval)
   {
     timeElapsed = 0;
+    LINE.notify(Temperature);
   }
 
   WorldRead();    //-----สำคัณเหนือสิงอื่นได
@@ -254,11 +263,4 @@ void loop()
   Blynk.run();
   blynkRead();
   Reconnect(); //เพราะมี blynk อยู่ ใช้  reconnect sensor ด้วย
-
-  while(Serial.available())
-  {
-      KeyboardIO = Serial.readString();
-      Serial.println(KeyboardIO);
-  }
-  
 }
