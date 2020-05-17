@@ -28,7 +28,6 @@ unsigned int intervalBlynkNotiReset = 10 * 60 * 1000; //secend *1000(is millisec
 #define Relay1 16
 #define Relay2 17
 #define LedBulidIn 2
-//#define Fan 15
 
 //*OLED
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
@@ -50,8 +49,8 @@ float Count = 0;
 
 //*EEPROM
 //ต้องใช้ code รี eeprom
-#define EEPROM_SIZE 3 //1.start กี่ครั้ง     \
-                      //2.reconnect กี่ครั้ง \
+#define EEPROM_SIZE 3 //1.start กี่ครั้ง     
+                      //2.reconnect กี่ครั้ง 
                       //
 int startCount = 0;
 int reconnectCount = 0;
@@ -180,6 +179,8 @@ void data2comport()
 
 String relayStatus1 = "OFF";
 String relayStatus2 = "OFF";
+int notiSwitch = 0;
+int notiSwitchReset = 0;
 void blynkRead()
 {
   Blynk.virtualWrite(V0, Temperature);
@@ -188,20 +189,25 @@ void blynkRead()
   Blynk.virtualWrite(V21, reconnectCount);
   Blynk.virtualWrite(V3, relayStatus1);
   Blynk.virtualWrite(V4, relayStatus2);
+  Blynk.virtualWrite(V32, notiSwitch);
+  Blynk.virtualWrite(V33, notiSwitchReset);
 }
-//blynk
-int notiSwitch = 0;
-BLYNK_WRITE(V30) // V30 is the number of Virtual Pin
+BLYNK_WRITE(V30) // V30 เปิดปิดแจ้งเตือน
 {
   notiSwitch = param.asInt();
 }
+BLYNK_WRITE(V31) // V31 เอาไว้ reset swith แจ้งเตือน
+{
+  notiSwitchReset = param.asInt();
+}
 void BlynkNoti()
 {
-  if (timeElapsedBlynkNotiReset > intervalBlynkNotiReset)
+  if (timeElapsedBlynkNotiReset > intervalBlynkNotiReset && notiSwitchReset == 1)
   {
     intervalBlynkNotiReset = 0;
     notiSwitch = 1;
   }
+
   if (Temperature <= 35 && notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
   {
     intervalBlynk = 0;
@@ -241,11 +247,9 @@ void setup()
   //*GPIO
   pinMode(Relay1, OUTPUT);
   pinMode(Relay2, OUTPUT);
-  //pinMode(Fan,OUTPUT);
   pinMode(LedBulidIn, OUTPUT);
   digitalWrite(Relay1, HIGH);
   digitalWrite(Relay2, HIGH);
-  //digitalWrite(Fan,HIGH);
   digitalWrite(LedBulidIn, HIGH);
 
   Serial.begin(115200);
