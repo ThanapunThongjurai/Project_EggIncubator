@@ -251,7 +251,7 @@ void loop()
   if (timeElapsed > interval)
   {
     timeElapsed = 0;
-    LINE.notify(Temperature);
+    //LINE.notify(Temperature);
   }
 
   WorldRead();    //-----สำคัณเหนือสิงอื่นได
