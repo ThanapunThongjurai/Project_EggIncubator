@@ -21,6 +21,8 @@ elapsedMillis timeElapsed;
 unsigned int interval = 10 * 1000; //secend *1000(is millisec)
 elapsedMillis timeElapsedBlynk;
 unsigned int intervalBlynk = 10 * 1000; //secend *1000(is millisec)
+elapsedMillis timeElapsedBlynkNotiReset;
+unsigned int intervalBlynkNotiReset = 10 * 60 * 1000; //secend *1000(is millisec)
 
 //*GPIO_SETTING
 #define Relay1 16
@@ -195,33 +197,34 @@ BLYNK_WRITE(V30) // V30 is the number of Virtual Pin
 }
 void BlynkNoti()
 {
-  if(Temperature > 35 && Temperature < 40)
+  if (timeElapsedBlynkNotiReset > intervalBlynkNotiReset)
   {
-    notiSwitch = 0;
+    intervalBlynkNotiReset = 0;
+    notiSwitch = 1;
   }
-  if (notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
+  if (Temperature <= 35 && notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
   {
     intervalBlynk = 0;
-    Blynk.notify("อุณหภูมิตกโว้ยย");
+    Blynk.notify("อุณหภูมิต่ำกว่าที่ควร 35องศา");
   }
-  if (notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
+  else if (Temperature >= 40 && notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
   {
     intervalBlynk = 0;
-    Blynk.notify("อุณหภูมิสูงไปแล้วโว้ยย");
+    Blynk.notify("อุณหภูมิสูงกว่าที่ควร 39องศา");
   }
 }
 
 //สำคัญสัสๆเลย
 void RelayControl()
 {
-  if (Temperature > 38.5)
+  if (Temperature >= 40)
   {
     relayStatus1 = "OFF";
     relayStatus2 = "OFF";
     digitalWrite(Relay1, HIGH);
     digitalWrite(Relay2, HIGH);
   }
-  if (Temperature < 36.5)
+  if (Temperature <= 36.5)
   {
     relayStatus1 = "ON";
     relayStatus2 = "ON";
@@ -280,5 +283,4 @@ void loop()
   blynkRead();
   BlynkNoti();
   Reconnect(); //เพราะมี blynk อยู่ ใช้  reconnect sensor ด้วย
-  
 }
