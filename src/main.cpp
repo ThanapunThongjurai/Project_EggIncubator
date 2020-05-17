@@ -11,10 +11,6 @@
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <EEPROM.h>
-#include <TridentTD_LineNotify.h>
-
-//*line token
-#define LINE_TOKEN "-"
 
 //*Teampreture
 uint8_t readStatus = 0;
@@ -22,7 +18,7 @@ AHT10 myAHT10(AHT10_ADDRESS_0X38);
 
 //*TIMER
 elapsedMillis timeElapsed;
-unsigned int interval = 60 * 1000; //secend *1000(is millisec)
+unsigned int interval = 20* 1000; //secend *1000(is millisec)
 
 //*GPIO_SETTING
 #define Relay1 16
@@ -75,11 +71,11 @@ void connnect2Sensor()
   //*AHT10
   if (myAHT10.begin() != true)
   {
-    Serial.println(F("[SENSOR]:-----AHT10 FAIL-----")); //(F()) save string to flash & keeps dynamic memory free
+    Serial.println(F("\n[SENSOR]:-----AHT10 FAIL-----")); //(F()) save string to flash & keeps dynamic memory free
   }
   else
   {
-    Serial.println(F("[SENSOR]:-----AHT10 OK-----"));
+    Serial.println(F("\n[SENSOR]:-----AHT10 OK-----"));
   }
 
   //*OLED
@@ -119,12 +115,12 @@ void Reconnect()
   }
   if (Blynk.connected() != true)
   {
-    Serial.println(F("-----Blynk Reconnect-----"));
+    Serial.println(F("[APP]:-----Blynk Reconnect-----"));
     Blynk.begin(auth, ssid, pass, serv, 8080);
     if (Blynk.connected() == true)
 
     {
-      Serial.println(F("-----BLYNK OK-----"));
+      Serial.println(F("[APP]:-----BLYNK OK-----"));
       reconnectCountEEPROM();
     }
     else
@@ -239,10 +235,6 @@ void setup()
     Temperature = (float)myAHT10.readTemperature(AHT10_USE_READ_DATA);
     Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
   }
-
-  //*line
-  //set token
-  LINE.setToken(LINE_TOKEN);
 }
 String KeyboardIO;
 void loop()
@@ -251,7 +243,6 @@ void loop()
   if (timeElapsed > interval)
   {
     timeElapsed = 0;
-    //LINE.notify(Temperature);
   }
 
   WorldRead();    //-----สำคัณเหนือสิงอื่นได
