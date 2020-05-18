@@ -99,7 +99,10 @@ void connnect2Sensor()
   display.clearDisplay();
 
   //*BLYNK
-  Blynk.begin(auth, ssid, pass, serv, 8080);
+  Blynk.config(auth, serv, 8080);
+  Serial.println(F("[APP]:-----BLYNK OK-----"));
+  //TODO: Blynk.connected() to Wifi.connect();
+  /*
   if (Blynk.connected() == true)
   {
     Serial.println(F("[APP]:-----BLYNK OK-----"));
@@ -107,6 +110,7 @@ void connnect2Sensor()
   }
   else
     Serial.println(F("[APP]:-----BLYNK FAIL TO START-----"));
+  */
 }
 
 void Reconnect()
@@ -115,16 +119,18 @@ void Reconnect()
 
   if (readStatus == AHT10_ERROR)
   {
-    Serial.print(F("ATH10 softReset Process: "));
+    Serial.print(F("[SENSOR]:-----ATH10 softReset Process: "));
     Serial.println(myAHT10.softReset()); //reset 1-success, 0-failed
     myAHT10.softReset();
     Temperature = 0;
     Humidity = 0;
   }
+  //TODO: Blynk.connected() to Wifi.connect
+  /*
   if (Blynk.connected() != true)
   {
     Serial.println(F("[APP]:-----Blynk Reconnect-----"));
-    Blynk.begin(auth, ssid, pass, serv, 8080);
+    Blynk.config(auth, serv, 8080);
     if (Blynk.connected() == true)
 
     {
@@ -133,7 +139,7 @@ void Reconnect()
     }
     else
       Serial.println(F("[APP]:-----BLYNK FAIL TO START-----"));
-  }
+  }*/
 }
 
 void WorldRead()
@@ -280,21 +286,15 @@ void setup()
   //Local intialization. Once its business is done, there is no need to keep it around
   WiFiManager wifiManager;
   //reset saved settings
-  wifiManager.resetSettings();
-
-  //set custom ip for portal
-  //wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
-
-  //fetches ssid and pass from eeprom and tries to connect
-  //if it does not connect it starts an access point with the specified name
-  //here  "AutoConnectAP"
-  //and goes into a blocking loop awaiting configuration
-  wifiManager.autoConnect("AutoConnectAP");
+  if (true)
+  {
+    //wifiManager.resetSettings();
+  }
+  //wifiManager.autoConnect("AutoConnectAP");
   //or use this for auto generated name ESP + ChipID
-  //wifiManager.autoConnect();
-
-  //if you get here you have connected to the WiFi
-  Serial.println("connected...yeey :)");
+  wifiManager.autoConnect();
+  //*!Serial.println("connected :)" + (String)WiFi.SSID());
+  //TODO:WIFI SSID GET IT TOMAKE US BETTER
 
   //*EEPROM
   EEPROM.begin(EEPROM_SIZE);
@@ -326,12 +326,13 @@ void setup()
 void loop()
 {
   //TIME
-  /*
+
   if (timeElapsed > interval)
   {
     timeElapsed = 0;
+    //Serial.println("WiFi.status() " + (String)WiFi.status());
+    //Serial.println("WL_CONNECTED " + (String)WL_CONNECTED);
   }
-  */
 
   WorldRead();    //-----สำคัณเหนือสิงอื่นได
   RelayControl(); //-----สำคัณเหนือสิงอื่นได
