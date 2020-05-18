@@ -22,7 +22,7 @@ unsigned int interval = 10 * 1000; //secend *1000(is millisec)
 elapsedMillis timeElapsedBlynk;
 unsigned int intervalBlynk = 10 * 1000; //secend *1000(is millisec)
 elapsedMillis timeElapsedBlynkNotiReset;
-unsigned int intervalBlynkNotiReset = 10 * 60 * 1000; //secend *1000(is millisec)
+unsigned int intervalBlynkNotiReset = 1 * 60 * 1000; //secend *1000(is millisec)
 
 //*GPIO_SETTING
 #define Relay1 16
@@ -49,8 +49,8 @@ float Count = 0;
 
 //*EEPROM
 //ต้องใช้ code รี eeprom
-#define EEPROM_SIZE 3 //1.start กี่ครั้ง     
-                      //2.reconnect กี่ครั้ง 
+#define EEPROM_SIZE 3 //1.start กี่ครั้ง     \
+                      //2.reconnect กี่ครั้ง \
                       //
 int startCount = 0;
 int reconnectCount = 0;
@@ -179,8 +179,11 @@ void data2comport()
 
 String relayStatus1 = "OFF";
 String relayStatus2 = "OFF";
+
 int notiSwitch = 0;
 int notiSwitchReset = 0;
+int checkResetNoti = 0;
+int checkNotiSwitch = 0;
 void blynkRead()
 {
   Blynk.virtualWrite(V0, Temperature);
@@ -205,9 +208,16 @@ void BlynkNoti()
   if (timeElapsedBlynkNotiReset > intervalBlynkNotiReset && notiSwitchReset == 1)
   {
     intervalBlynkNotiReset = 0;
+    checkResetNoti = notiSwitchReset;
+  }
+  if(notiSwitchReset == 0)
+  {
+    checkResetNoti = 0; 
+  }
+  if(checkResetNoti == 1)
+  {
     notiSwitch = 1;
   }
-
   if (Temperature <= 35 && notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
   {
     intervalBlynk = 0;
@@ -268,15 +278,15 @@ void setup()
     Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
   }
 }
-String KeyboardIO;
 void loop()
 {
   //TIME
+  /*
   if (timeElapsed > interval)
   {
     timeElapsed = 0;
   }
-
+  */
   WorldRead();    //-----สำคัณเหนือสิงอื่นได
   RelayControl(); //-----สำคัณเหนือสิงอื่นได
 
