@@ -12,3 +12,4 @@
 # lib
 # https://github.com/enjoyneering/AHT10
 # https://github.com/zhouhan0126/WIFIMANAGER-ESP32
+# https://eleceasy.com/t/web-portal-wifi-manager-style/2746/8
