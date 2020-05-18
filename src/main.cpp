@@ -20,9 +20,9 @@ AHT10 myAHT10(AHT10_ADDRESS_0X38);
 elapsedMillis timeElapsed;
 unsigned int interval = 10 * 1000; //secend *1000(is millisec)
 elapsedMillis timeElapsedBlynk;
-unsigned int intervalBlynk = 10 * 1000; //secend *1000(is millisec)
+unsigned int intervalBlynk = 5 * 1000; //secend *1000(is millisec)
 elapsedMillis timeElapsedBlynkNotiReset;
-unsigned int intervalBlynkNotiReset = 1 * 60 * 1000; //secend *1000(is millisec)
+unsigned int intervalBlynkNotiReset = 10 * 60 * 1000; //secend *1000(is millisec)
 
 //*GPIO_SETTING
 #define Relay1 16
@@ -179,11 +179,11 @@ void data2comport()
 
 String relayStatus1 = "OFF";
 String relayStatus2 = "OFF";
-
 int notiSwitch = 0;
 int notiSwitchReset = 0;
 int checkResetNoti = 0;
 int checkNotiSwitch = 0;
+bool notiStatus = 0;
 void blynkRead()
 {
   Blynk.virtualWrite(V0, Temperature);
@@ -192,8 +192,8 @@ void blynkRead()
   Blynk.virtualWrite(V21, reconnectCount);
   Blynk.virtualWrite(V3, relayStatus1);
   Blynk.virtualWrite(V4, relayStatus2);
-  Blynk.virtualWrite(V32, notiSwitch);
-  Blynk.virtualWrite(V33, notiSwitchReset);
+  Blynk.virtualWrite(V32, checkNotiSwitch);
+  Blynk.virtualWrite(V33, checkResetNoti);
 }
 BLYNK_WRITE(V30) // V30 เปิดปิดแจ้งเตือน
 {
@@ -203,30 +203,45 @@ BLYNK_WRITE(V31) // V31 เอาไว้ reset swith แจ้งเตือ�
 {
   notiSwitchReset = param.asInt();
 }
+void noti(String add)
+{
+  if (Temperature <= 35 && timeElapsedBlynk > intervalBlynk)
+  {
+    timeElapsedBlynk = 0;
+    Blynk.notify("อุณหภูมิต่ำกว่าที่ควร 35องศา " + add);
+  }
+  else if (Temperature >= 40 && timeElapsedBlynk > intervalBlynk)
+  {
+    timeElapsedBlynk = 0;
+    Blynk.notify("อุณหภูมิสูงกว่าที่ควร 39องศา " + add);
+  }
+}
 void BlynkNoti()
 {
-  if (timeElapsedBlynkNotiReset > intervalBlynkNotiReset && notiSwitchReset == 1)
+  checkResetNoti = notiSwitchReset;
+  checkNotiSwitch = notiSwitch;
+
+  if (timeElapsedBlynkNotiReset > intervalBlynkNotiReset)
   {
-    intervalBlynkNotiReset = 0;
-    checkResetNoti = notiSwitchReset;
+    if (checkResetNoti == 1)
+    {
+      notiStatus = 1;
+    }
+    timeElapsedBlynkNotiReset = 0;
   }
-  if(notiSwitchReset == 0)
+  if (checkResetNoti == 0)
   {
-    checkResetNoti = 0; 
+    notiStatus = 0;
+    timeElapsedBlynkNotiReset = 0;
   }
-  if(checkResetNoti == 1)
+
+  if (checkNotiSwitch == 1)
   {
-    notiSwitch = 1;
+    noti("NOW");
   }
-  if (Temperature <= 35 && notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
+  else if (notiStatus == 1)
   {
-    intervalBlynk = 0;
-    Blynk.notify("อุณหภูมิต่ำกว่าที่ควร 35องศา");
-  }
-  else if (Temperature >= 40 && notiSwitch == 1 && timeElapsedBlynk > intervalBlynk)
-  {
-    intervalBlynk = 0;
-    Blynk.notify("อุณหภูมิสูงกว่าที่ควร 39องศา");
+    noti("AUTO");
   }
 }
 
@@ -287,7 +302,8 @@ void loop()
     timeElapsed = 0;
   }
   */
-  WorldRead();    //-----สำคัณเหนือสิงอื่นได
+ 
+  //WorldRead();    //-----สำคัณเหนือสิงอื่นได
   RelayControl(); //-----สำคัณเหนือสิงอื่นได
 
   OLED();
