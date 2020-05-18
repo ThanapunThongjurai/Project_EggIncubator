@@ -1,5 +1,8 @@
-//** จะไม่มีการ ใช้ ESP32.reset เด็ดขาดทุกอย่างต้องทำงานแยกกัน
-//** no  delay
+/*
+    ** จะไม่มีการ ใช้ ESP32.reset เด็ดขาดทุกอย่างต้องทำงานแยกกัน
+    ** no  delay
+*/
+//*! LibaryLoader
 #include <Arduino.h>
 #include <elapsedMillis.h>
 #include <Wire.h>
@@ -11,16 +14,27 @@
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
 #include <EEPROM.h>
-
-//wifi manger
+//*wifi manger
 #include <DNSServer.h>
 #include <WebServer.h>
 #include <WiFiManager.h>
 
+//*! all
+//*GPIO_SETTING
+#define Relay1 16
+#define Relay2 17
+#define LedBulidIn 2
+//*GOBAL_VAR
+float Temperature = 0;
+float Humidity = 0;
+String relayStatus1 = "OFF";
+String relayStatus2 = "OFF";
+
+
+//*!ObjectSetup
 //*Teampreture
 uint8_t readStatus = 0;
 AHT10 myAHT10(AHT10_ADDRESS_0X38);
-
 //*TIMER
 elapsedMillis timeElapsed;
 unsigned int interval = 10 * 1000; //secend *1000(is millisec)
@@ -28,35 +42,26 @@ elapsedMillis timeElapsedBlynk;
 unsigned int intervalBlynk = 5 * 1000; //secend *1000(is millisec)
 elapsedMillis timeElapsedBlynkNotiReset;
 unsigned int intervalBlynkNotiReset = 10 * 60 * 1000; //secend *1000(is millisec)
-
-//*GPIO_SETTING
-#define Relay1 16
-#define Relay2 17
-#define LedBulidIn 2
-
 //*OLED
 #define SCREEN_WIDTH 128 // OLED display width, in pixels
 #define SCREEN_HEIGHT 64 // OLED display height, in pixels
 // Declaration for an SSD1306 display connected to I2C (SDA, SCL pins)
 #define OLED_RESET 4 // Reset pin # (or -1 if sharing Arduino reset pin)
 Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
-
 //*BLYNK
 char auth[] = "uQE9tc0pxF3kvNageuLAk9ifvoVbElpi";
 char ssid[] = "SSID";
 char pass[] = "";
 char serv[] = "blynk.ecp.in.th";
-
-//*GOBAL_VAR
-float Temperature = 0;
-float Humidity = 0;
-float Count = 0;
-
 //*EEPROM
 //ต้องใช้ code รี eeprom
 #define EEPROM_SIZE 3 //1.start กี่ครั้ง     \
                       //2.reconnect กี่ครั้ง \
                       //
+
+
+
+//*! function
 int startCount = 0;
 int reconnectCount = 0;
 void startCountEEPROM()
@@ -73,8 +78,7 @@ void reconnectCountEEPROM()
   EEPROM.write(1, reconnectCount);
   EEPROM.commit();
 }
-
-void connnect2Sensor()
+void C2W()
 {
   //*AHT10
   if (myAHT10.begin() != true)
@@ -85,7 +89,6 @@ void connnect2Sensor()
   {
     Serial.println(F("\n[SENSOR]:-----AHT10 OK-----"));
   }
-
   //*OLED
   if (display.begin(SSD1306_SWITCHCAPVCC, 0x3c) != false)
   {
@@ -97,69 +100,9 @@ void connnect2Sensor()
   }
   display.display();
   display.clearDisplay();
-
   //*BLYNK
   Blynk.config(auth, serv, 8080);
   Serial.println(F("[APP]:-----BLYNK OK-----"));
-  //TODO: Blynk.connected() to Wifi.connect();
-  /*
-  if (Blynk.connected() == true)
-  {
-    Serial.println(F("[APP]:-----BLYNK OK-----"));
-    startCountEEPROM();
-  }
-  else
-    Serial.println(F("[APP]:-----BLYNK FAIL TO START-----"));
-  */
-}
-
-void Reconnect()
-{
-  //*ใช้ i2c scanner เช็คเอาก็ได้นะแต่ขี้เกียจละ
-
-  if (readStatus == AHT10_ERROR)
-  {
-    Serial.print(F("[SENSOR]:-----ATH10 softReset Process: "));
-    Serial.println(myAHT10.softReset()); //reset 1-success, 0-failed
-    myAHT10.softReset();
-    Temperature = 0;
-    Humidity = 0;
-  }
-  //TODO: Blynk.connected() to Wifi.connect
-  /*
-  if (Blynk.connected() != true)
-  {
-    Serial.println(F("[APP]:-----Blynk Reconnect-----"));
-    Blynk.config(auth, serv, 8080);
-    if (Blynk.connected() == true)
-
-    {
-      Serial.println(F("[APP]:-----BLYNK OK-----"));
-      reconnectCountEEPROM();
-    }
-    else
-      Serial.println(F("[APP]:-----BLYNK FAIL TO START-----"));
-  }*/
-}
-
-void WorldRead()
-{
-  readStatus = myAHT10.readRawData(); //read 6 bytes from AHT10 over I2C
-  if (readStatus != AHT10_ERROR)
-  {
-    //Serial.print(F("Temperature: ")); Serial.print(myAHT10.readTemperature(AHT10_USE_READ_DATA)); Serial.println(F(" +-0.3C"));
-    //Serial.print(F("Humidity...: ")); Serial.print(myAHT10.readHumidity(AHT10_USE_READ_DATA));    Serial.println(F(" +-2%"));
-    Temperature = (float)myAHT10.readTemperature(AHT10_USE_READ_DATA);
-    Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
-  }
-  /*
-  else
-  {
-    //Serial.print(F("Failed to read - reset: "));
-    //Serial.println(myAHT10.softReset());//reset 1-success, 0-failed
-    //myAHT10.softReset();
-  }
-  */
 }
 
 //แสดงผล
@@ -187,9 +130,7 @@ void data2comport()
   Serial.print(Humidity);
   Serial.println(F(" +-2%"));
 }
-
-String relayStatus1 = "OFF";
-String relayStatus2 = "OFF";
+//blynk noti
 int notiSwitch = 0;
 int notiSwitchReset = 0;
 int checkResetNoti = 0;
@@ -256,7 +197,29 @@ void BlynkNoti()
   }
 }
 
-//สำคัญสัสๆเลย
+
+
+
+
+//*!สำคัญ
+void WorldRead()
+{
+  readStatus = myAHT10.readRawData(); //read 6 bytes from AHT10 over I2C
+  if (readStatus != AHT10_ERROR)
+  {
+    //Serial.print(F("Temperature: ")); Serial.print(myAHT10.readTemperature(AHT10_USE_READ_DATA)); Serial.println(F(" +-0.3C"));
+    //Serial.print(F("Humidity...: ")); Serial.print(myAHT10.readHumidity(AHT10_USE_READ_DATA));    Serial.println(F(" +-2%"));
+    Temperature = (float)myAHT10.readTemperature(AHT10_USE_READ_DATA);
+    Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
+  }
+  else
+  {
+    Serial.print(F("[SENSOR]:-----ATH10 softReset Process: "));
+    Serial.println(myAHT10.softReset()); //reset 1-success, 0-failed
+    myAHT10.softReset();
+  }
+}
+//*!สำคัญ
 void RelayControl()
 {
   if (Temperature >= 40)
@@ -274,27 +237,21 @@ void RelayControl()
     digitalWrite(Relay2, LOW);
   }
 }
-
+//*!สำคัญ
 void setup()
 {
-
-  //wifi manger
-  // put your setup code here, to run once:
   Serial.begin(115200);
 
-  //WiFiManager
-  //Local intialization. Once its business is done, there is no need to keep it around
+  //*WifiManager
   WiFiManager wifiManager;
   //reset saved settings
+  //TODO:make rest wifi SSID
   if (true)
   {
     //wifiManager.resetSettings();
   }
-  //wifiManager.autoConnect("AutoConnectAP");
-  //or use this for auto generated name ESP + ChipID
-  wifiManager.autoConnect();
-  //*!Serial.println("connected :)" + (String)WiFi.SSID());
-  //TODO:WIFI SSID GET IT TOMAKE US BETTER
+  wifiManager.autoConnect("EGG-INCUBATOR");
+  //wifiManager.autoConnect();//or use this for auto generated name ESP + ChipID
 
   //*EEPROM
   EEPROM.begin(EEPROM_SIZE);
@@ -307,11 +264,8 @@ void setup()
   digitalWrite(Relay2, HIGH);
   digitalWrite(LedBulidIn, HIGH);
 
-  //Serial.begin(115200);
-  //Wire.setClock(400000); //experimental I2C speed! 400KHz, default 100KHz
-
-  //*AHT10 and OLED connection
-  connnect2Sensor();
+  //*AHT10 and OLED and Blynk connection
+  C2W();
 
   //*WorldRead();
   readStatus = myAHT10.readRawData(); //read 6 bytes from AHT10 over I2C
@@ -323,25 +277,24 @@ void setup()
     Humidity = (float)myAHT10.readHumidity(AHT10_USE_READ_DATA);
   }
 }
+//*!สำคัญ
 void loop()
 {
-  //TIME
-
+  //TIMER
   if (timeElapsed > interval)
   {
     timeElapsed = 0;
-    //Serial.println("WiFi.status() " + (String)WiFi.status());
-    //Serial.println("WL_CONNECTED " + (String)WL_CONNECTED);
+    
   }
 
-  WorldRead();    //-----สำคัณเหนือสิงอื่นได
-  RelayControl(); //-----สำคัณเหนือสิงอื่นได
+  WorldRead();    //-----สำคัณเหนือสิงอื่นได  //read data i2c
+  RelayControl(); //-----สำคัณเหนือสิงอื่นได  //relay Controll
 
-  OLED();
-  //data2comport();
+  OLED(); //SS1306 OLED
+  //data2comport();//Serial get temp and hum
 
   Blynk.run();
-  blynkRead();
+  blynkRead(); //Blynk visual and analog pin read
   BlynkNoti();
-  Reconnect(); //เพราะมี blynk อยู่ ใช้  reconnect sensor ด้วย
+  
 }

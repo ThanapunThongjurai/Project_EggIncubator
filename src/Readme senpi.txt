@@ -32,3 +32,36 @@
             Serial.println(myAHT10.softReset());         //reset 1-success, 0-failed
         }
   //delay(); //recomended polling frequency 8sec..30sec
+
+
+
+
+
+
+//Serial.println("WiFi.status() " + (String)WiFi.status());
+//Serial.println("WL_CONNECTED " + (String)WL_CONNECTED);
+
+
+//*!Serial.println("connected :)" + (String)WiFi.SSID()); //make blynk donw
+//TODO:WIFI SSID GET IT TOMAKE US BETTER
+
+
+
+  //Wire.setClock(400000); //experimental I2C speed! 400KHz, default 100KHz
+
+
+//Reconnect(); //เพราะมี blynk อยู่ ใช้  reconnect sensor ด้วย
+/*
+void Reconnect()
+{
+  //*ใช้ i2c scanner เช็คเอาก็ได้นะแต่ขี้เกียจละ
+  if (readStatus == AHT10_ERROR)
+  {
+    Serial.print(F("[SENSOR]:-----ATH10 softReset Process: "));
+    Serial.println(myAHT10.softReset()); //reset 1-success, 0-failed
+    myAHT10.softReset();
+    Temperature = 0;
+    Humidity = 0;
+  }
+}
+*/
