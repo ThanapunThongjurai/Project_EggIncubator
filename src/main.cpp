@@ -13,7 +13,7 @@
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
-#include <EEPROM.h>
+//#include <EEPROM.h>
 //*wifi manger
 #include <DNSServer.h>
 #include <WebServer.h>
@@ -53,15 +53,17 @@ char auth[] = "uQE9tc0pxF3kvNageuLAk9ifvoVbElpi";
 char ssid[] = "SSID";
 char pass[] = "";
 char serv[] = "blynk.ecp.in.th";
-//*EEPROM
+
+/////*EEPROM
 //ต้องใช้ code รี eeprom
-#define EEPROM_SIZE 3 //1.start กี่ครั้ง     \
-                      //2.reconnect กี่ครั้ง \
-                      //
+//#define EEPROM_SIZE 3 
+//1.start กี่ครั้ง
+//2.reconnect กี่ครั้ง 
 
 
 
 //*! function
+/*
 int startCount = 0;
 int reconnectCount = 0;
 void startCountEEPROM()
@@ -78,6 +80,7 @@ void reconnectCountEEPROM()
   EEPROM.write(1, reconnectCount);
   EEPROM.commit();
 }
+*/
 void C2W()
 {
   //*AHT10
@@ -140,8 +143,8 @@ void blynkRead()
 {
   Blynk.virtualWrite(V0, Temperature);
   Blynk.virtualWrite(V1, Humidity);
-  Blynk.virtualWrite(V20, startCount);
-  Blynk.virtualWrite(V21, reconnectCount);
+  //Blynk.virtualWrite(V20, startCount);
+  //Blynk.virtualWrite(V21, reconnectCount);
   Blynk.virtualWrite(V3, relayStatus1);
   Blynk.virtualWrite(V4, relayStatus2);
   Blynk.virtualWrite(V32, checkNotiSwitch);
@@ -254,7 +257,7 @@ void setup()
   //wifiManager.autoConnect();//or use this for auto generated name ESP + ChipID
 
   //*EEPROM
-  EEPROM.begin(EEPROM_SIZE);
+/////  EEPROM.begin(EEPROM_SIZE);
 
   //*GPIO
   pinMode(Relay1, OUTPUT);
@@ -296,5 +299,9 @@ void loop()
   Blynk.run();
   blynkRead(); //Blynk visual and analog pin read
   BlynkNoti();
+  if(WiFi.status() != WL_CONNECTED)
+  {
+    Serial.println("wifi lost");
+  }
   
 }
