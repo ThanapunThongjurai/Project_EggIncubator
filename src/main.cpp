@@ -12,6 +12,11 @@
 #include <BlynkSimpleEsp32.h>
 #include <EEPROM.h>
 
+//wifi manger
+#include <DNSServer.h>
+#include <WebServer.h>
+#include <WiFiManager.h>
+
 //*Teampreture
 uint8_t readStatus = 0;
 AHT10 myAHT10(AHT10_ADDRESS_0X38);
@@ -266,6 +271,31 @@ void RelayControl()
 
 void setup()
 {
+
+  //wifi manger
+  // put your setup code here, to run once:
+  Serial.begin(115200);
+
+  //WiFiManager
+  //Local intialization. Once its business is done, there is no need to keep it around
+  WiFiManager wifiManager;
+  //reset saved settings
+  wifiManager.resetSettings();
+
+  //set custom ip for portal
+  //wifiManager.setAPStaticIPConfig(IPAddress(10,0,1,1), IPAddress(10,0,1,1), IPAddress(255,255,255,0));
+
+  //fetches ssid and pass from eeprom and tries to connect
+  //if it does not connect it starts an access point with the specified name
+  //here  "AutoConnectAP"
+  //and goes into a blocking loop awaiting configuration
+  wifiManager.autoConnect("AutoConnectAP");
+  //or use this for auto generated name ESP + ChipID
+  //wifiManager.autoConnect();
+
+  //if you get here you have connected to the WiFi
+  Serial.println("connected...yeey :)");
+
   //*EEPROM
   EEPROM.begin(EEPROM_SIZE);
 
@@ -277,7 +307,7 @@ void setup()
   digitalWrite(Relay2, HIGH);
   digitalWrite(LedBulidIn, HIGH);
 
-  Serial.begin(115200);
+  //Serial.begin(115200);
   //Wire.setClock(400000); //experimental I2C speed! 400KHz, default 100KHz
 
   //*AHT10 and OLED connection
@@ -302,8 +332,8 @@ void loop()
     timeElapsed = 0;
   }
   */
- 
-  //WorldRead();    //-----สำคัณเหนือสิงอื่นได
+
+  WorldRead();    //-----สำคัณเหนือสิงอื่นได
   RelayControl(); //-----สำคัณเหนือสิงอื่นได
 
   OLED();
