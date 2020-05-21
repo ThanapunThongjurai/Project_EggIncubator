@@ -1,6 +1,7 @@
 /*
     ** จะไม่มีการ ใช้ ESP32.reset เด็ดขาดทุกอย่างต้องทำงานแยกกัน
     ** no  delay
+    TODO : add motor controll for egg 
 */
 //*! LibaryLoader
 #include <Arduino.h>
@@ -283,7 +284,7 @@ void setup()
 //*!สำคัญ
 void loop()
 {
-  //TIMER
+  //*TIMER
   if (timeElapsed > interval)
   {
     timeElapsed = 0;
